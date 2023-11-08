@@ -324,6 +324,11 @@ type Exception struct {
 	traceLimit  int
 }
 
+func (e *Exception) StringifyError() string {
+	val := JsonStringifyWithoutRuntime(&e.val, nil)
+	return val.String()
+}
+
 func (e *Exception) NativeError() error {
 	if errObj, ok := e.val.(*Object); ok && errObj.__wrapped != nil {
 		if errWrapped, ok := errObj.__wrapped.(error); ok {
