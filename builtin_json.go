@@ -176,74 +176,6 @@ type _builtinJSON_stringifyContext struct {
 	allAscii         bool
 }
 
-func JsonStringifyWithoutRuntime(value *Value, spacer Value) Value {
-	v := *value
-	var runtime *Runtime
-	if obj, ok := v.(*Object); ok {
-		runtime = obj.runtime
-	}
-
-	ctx := _builtinJSON_stringifyContext{
-		r:        runtime,
-		allAscii: true,
-	}
-
-	if spaceValue := spacer; spaceValue != _undefined {
-		if o, ok := spaceValue.(*Object); ok {
-			switch oImpl := o.self.(type) {
-			case *primitiveValueObject:
-				switch oImpl.pValue.(type) {
-				case valueInt, valueFloat:
-					spaceValue = o.ToNumber()
-				}
-			case *stringObject:
-				spaceValue = o.ToString()
-			}
-		}
-		isNum := false
-		var num int64
-		if i, ok := spaceValue.(valueInt); ok {
-			num = int64(i)
-			isNum = true
-		} else if i, ok := spaceValue.(valueInt64); ok {
-			num = int64(i)
-			isNum = true
-		} else if f, ok := spaceValue.(valueFloat); ok {
-			num = int64(f)
-			isNum = true
-		}
-		if isNum {
-			if num > 0 {
-				if num > 10 {
-					num = 10
-				}
-				ctx.gap = strings.Repeat(" ", int(num))
-			}
-		} else {
-			if s, ok := spaceValue.(valueString); ok {
-				str := s.String()
-				if len(str) > 10 {
-					ctx.gap = str[:10]
-				} else {
-					ctx.gap = str
-				}
-			}
-		}
-	}
-
-	holder := runtime.NewObject()
-	if ctx.doWithoutRuntime(*value, holder) {
-		if ctx.allAscii {
-			return asciiString(ctx.buf.String())
-		} else {
-			return &importedString{
-				s: ctx.buf.String(),
-			}
-		}
-	}
-	return _undefined
-}
-
 func (r *Runtime) builtinJSON_stringify(call FunctionCall) Value {
 	ctx := _builtinJSON_stringifyContext{
 		r:        r,
@@ -342,11 +274,6 @@ func (r *Runtime) builtinJSON_stringify(call FunctionCall) Value {
 
 func (ctx *_builtinJSON_stringifyContext) do(v Value) bool {
 	holder := ctx.r.NewObject()
-	createDataPropertyOrThrow(holder, stringEmpty, v)
-	return ctx.str(stringEmpty, holder)
-}
-
-func (ctx *_builtinJSON_stringifyContext) doWithoutRuntime(v Value, holder *Object) bool {
 	createDataPropertyOrThrow(holder, stringEmpty, v)
 	return ctx.str(stringEmpty, holder)
 }

@@ -324,8 +324,12 @@ type Exception struct {
 	traceLimit  int
 }
 
-func (e *Exception) StringifyError() string {
-	val := JsonStringifyWithoutRuntime(&e.val, nil)
+func (e *Exception) StringifyError(r *Runtime) string {
+	val := r.builtinJSON_stringify(FunctionCall{
+		Arguments: []Value{
+			e.val,
+		},
+	})
 	return val.String()
 }
 
