@@ -333,6 +333,16 @@ func (e *Exception) NativeError() error {
 	return e.nativeErr
 }
 
+func (e *Exception) StringifyError(r *Runtime) string {
+	val := r.builtinJSON_stringify(FunctionCall{
+		Arguments: []Value{
+			e.val,
+		},
+	})
+
+	return val.String()
+}
+
 type uncatchableException struct {
 	err error
 }

@@ -2971,6 +2971,76 @@ func TestExceptionWithinAppliedObjectFunc(t *testing.T) {
 	}
 }
 
+func TestExceptionStringifyError(t *testing.T) {
+	runtime := New()
+
+	for _, tc := range []struct {
+		description    string
+		exceptionVal   func() Value
+		expectedString string
+	}{
+		{
+			description: "Bool",
+			exceptionVal: func() Value {
+				return valueBool(true)
+			},
+			expectedString: "true",
+		},
+		{
+			description: "Int",
+			exceptionVal: func() Value {
+				return valueInt(1234)
+			},
+			expectedString: "1234",
+		},
+		{
+			description: "String",
+			exceptionVal: func() Value {
+				return newStringValue("hello")
+			},
+			expectedString: "\"hello\"",
+		},
+		{
+			description: "Null",
+			exceptionVal: func() Value {
+				return valueNull{}
+			},
+			expectedString: "null",
+		},
+		{
+			description: "Undefined",
+			exceptionVal: func() Value {
+				return valueUndefined{}
+			},
+			expectedString: "undefined",
+		},
+		{
+			description: "Object",
+			exceptionVal: func() Value {
+				testObject := runtime.NewObject()
+				testObject.Set("foo", "bar")
+				testObject.Set("fizz", "buzz")
+
+				return testObject
+			},
+			expectedString: "{\"foo\":\"bar\",\"fizz\":\"buzz\"}",
+		},
+	} {
+		ex := Exception{
+			val: tc.exceptionVal(),
+		}
+
+		s := ex.StringifyError(runtime)
+
+		t.Run(fmt.Sprintf("Exception Value is %s", tc.description), func(t *testing.T) {
+			if s != tc.expectedString {
+				t.Fatalf("Stringified exception did not match. Actual: %s Expected: %s", s, tc.expectedString)
+			}
+		})
+	}
+
+}
+
 // TODO(REALMC-10739) return the actual stack trace
 func TestErrorCaptureStackTrace(t *testing.T) {
 	const SCRIPT = `
