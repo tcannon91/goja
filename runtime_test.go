@@ -3014,17 +3014,6 @@ func TestExceptionStringifyError(t *testing.T) {
 			},
 			expectedString: "undefined",
 		},
-		{
-			description: "Object",
-			exceptionVal: func() Value {
-				testObject := runtime.NewObject()
-				testObject.Set("foo", "bar")
-				testObject.Set("fizz", "buzz")
-
-				return testObject
-			},
-			expectedString: "{\"foo\":\"bar\",\"fizz\":\"buzz\"}",
-		},
 	} {
 		ex := Exception{
 			val: tc.exceptionVal(),
@@ -3039,6 +3028,34 @@ func TestExceptionStringifyError(t *testing.T) {
 		})
 	}
 
+}
+
+func TestExceptionStringifyErrorObject(t *testing.T) {
+	runtime := New()
+
+	expectedData := map[string]string{
+		"foo":  "bar",
+		"fizz": "buzz",
+	}
+
+	testObject := runtime.NewObject()
+
+	for k := range expectedData {
+		testObject.Set(k, expectedData[k])
+	}
+
+	ex := Exception{
+		val: testObject,
+	}
+
+	s := ex.StringifyError(runtime)
+
+	for expectedKey := range expectedData {
+		expectedSubstring := fmt.Sprintf("\"%s\":\"%s\"", expectedKey, expectedData[expectedKey])
+		if !strings.Contains(s, expectedSubstring) {
+			t.Fatalf("Stringified exception object did not contain expected substring: %s", expectedSubstring)
+		}
+	}
 }
 
 // TODO(REALMC-10739) return the actual stack trace
