@@ -334,6 +334,10 @@ func (e *Exception) NativeError() error {
 }
 
 func (e *Exception) StringifyError(r *Runtime) string {
+	if e.val.baseObject(r).self.className() == stringError.String() {
+		return e.Error()
+	}
+
 	val := r.builtinJSON_stringify(FunctionCall{
 		Arguments: []Value{
 			e.val,
