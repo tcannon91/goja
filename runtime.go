@@ -334,13 +334,22 @@ func (e *Exception) NativeError() error {
 }
 
 func (e *Exception) StringifyError(r *Runtime) string {
-	val := r.builtinJSON_stringify(FunctionCall{
-		Arguments: []Value{
-			e.val,
-		},
-	})
+	// if the exception has a base type of Object or Array then stringify the result
+	base := e.val.baseObject(r)
+	if base != nil {
+		switch base.ClassName() {
+		case "Array", "Object":
+			val := r.builtinJSON_stringify(FunctionCall{
+				Arguments: []Value{
+					e.val,
+				},
+			})
+			return val.String()
+		default:
+		}
+	}
 
-	return val.String()
+	return e.Error()
 }
 
 type uncatchableException struct {

@@ -2998,7 +2998,7 @@ func TestExceptionStringifyError(t *testing.T) {
 			exceptionVal: func() Value {
 				return newStringValue("hello")
 			},
-			expectedString: "\"hello\"",
+			expectedString: "hello",
 		},
 		{
 			description: "Null",
@@ -3013,6 +3013,33 @@ func TestExceptionStringifyError(t *testing.T) {
 				return valueUndefined{}
 			},
 			expectedString: "undefined",
+		},
+		{
+			description: "Array",
+			exceptionVal: func() Value {
+				array := runtime.builtin_newArray([]Value{
+					valueInt(1),
+					valueInt(2),
+					valueInt(3),
+				}, runtime.getArrayPrototype())
+
+				return array
+			},
+			expectedString: "[1,2,3]",
+		},
+		{
+			description: "General error",
+			exceptionVal: func() Value {
+				return runtime.newError(runtime.getError(), "i am an error")
+			},
+			expectedString: "Error: i am an error",
+		},
+		{
+			description: "TypeError",
+			exceptionVal: func() Value {
+				return runtime.NewTypeError("i am a type error")
+			},
+			expectedString: "TypeError: i am a type error",
 		},
 	} {
 		ex := Exception{
